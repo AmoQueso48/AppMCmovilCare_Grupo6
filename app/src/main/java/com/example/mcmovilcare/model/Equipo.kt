@@ -1,32 +1,15 @@
 package com.example.mcmovilcare.model
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
-
-@Entity(
-    tableName = "equipos",
-    foreignKeys = [
-        ForeignKey(
-            entity = Usuario:: class,
-            parentColumns = ["id"],
-            childColumns = ["clienteId"],
-            onDelete = @ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("clienteId")]
-)
-
-data class Equipo (
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val clienteID: Long,
+//cambio de planes de uso de room para prueba mas local sin uso de room
+data class Equipo(
+    val id: Int,
+    val clienteCorreo: String,
     val tipo: String,
     val marca: String,
     val modelo: String,
     val serie: String,
     val accesorios: String,
-    val garentiaHasta: Long
+    val garantiaHasta: Long
 ) {
-    fun garantiaVigente (ahorita: Long = System.currentTimeMillis()): Boolean = garentiaHasta >= ahorita
+    fun garantiaVigente(ahora: Long = System.currentTimeMillis()): Boolean = garantiaHasta >= ahora
 }

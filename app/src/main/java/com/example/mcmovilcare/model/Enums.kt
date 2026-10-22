@@ -1,7 +1,5 @@
 package com.example.mcmovilcare.model
 
-enum class Rol {CLIENTE, TECNICO, ADMIN}
-
 enum class EstadoOrden(val etiqueta: String, val progreso: Float) {
     INGRESADO("Ingresado", 0.10f),
     DIAGNOSTICO("En diagnostico", 0.25f),
