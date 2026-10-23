@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.mcmovilcare.model.SolicitudDeAtencion
 import com.example.mcmovilcare.model.Usuario
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 
@@ -17,6 +19,7 @@ class PreferenciasDataStore(private val context: Context) {
     private val TELEFONO = stringPreferencesKey("usuario_telefono")
     private val CLAVE = stringPreferencesKey("usuario_clave")
     private val SESION = stringPreferencesKey("sesion_correo")
+    private val SOLICITUDES = stringPreferencesKey("solicitudes_json")
     private fun claveFoto(correo: String) = stringPreferencesKey("foto_" + correo.trim().lowercase())
 
     suspend fun guardarUsuario(usuario: Usuario) {
@@ -52,5 +55,12 @@ class PreferenciasDataStore(private val context: Context) {
     fun obtenerFoto(correo: String): Flow<String?> {
         val clave = claveFoto(correo)
         return context.dataStore.data.map { it[clave] }
+    }
+
+    fun observarSolicitudes(): Flow<List<SolicitudDeAtencion>> =
+        context.dataStore.data.map { jsonASolicitudes(it[SOLICITUDES]) }.distinctUntilChanged()
+
+    suspend fun guardarSolicitudes(lista: List<SolicitudDeAtencion>) {
+        context.dataStore.edit { p -> p[SOLICITUDES] = solicitudesAJson(lista) }
     }
 }

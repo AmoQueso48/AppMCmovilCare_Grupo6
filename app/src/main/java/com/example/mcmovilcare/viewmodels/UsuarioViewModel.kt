@@ -1,6 +1,5 @@
 package com.example.mcmovilcare.viewmodels
 
-
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,7 +20,6 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     private val repo = UsuarioRepository(PreferenciasDataStore(application))
 
-    // ───────── Sesión ─────────
     private val _usuarioActual = MutableStateFlow<Usuario?>(null)
     val usuarioActual: StateFlow<Usuario?> = _usuarioActual
 
@@ -71,12 +69,15 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun iniciarSesion(onExito: () -> Unit) {
+        if (_login.value.cargando) return
         if (!validarLogin()) return
         viewModelScope.launch {
+            _login.update { it.copy(cargando = true, errorGeneral = null) }
+            delay(800)
             val e = _login.value
             val usuario = repo.login(e.correo, e.clave)
             if (usuario == null) {
-                _login.update { it.copy(errorGeneral = "Correo o clave incorrectos") }
+                _login.update { it.copy(cargando = false, errorGeneral = "Correo o clave incorrectos") }
             } else {
                 repo.guardarSesion(usuario.correo)
                 _usuarioActual.value = usuario
@@ -123,13 +124,13 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
             },
             correo = when {
                 e.correo.isBlank() -> "Campo obligatorio"
-                !e.correo.contains("@") || !e.correo.contains(".") -> "Correo inválido"
+                !e.correo.contains("@") || !e.correo.contains(".") -> "Correo invalido"
                 else -> null
             },
             telefono = when {
                 e.telefono.isBlank() -> "Campo obligatorio"
-                !digitos.all { it.isDigit() } -> "Solo puede contener números"
-                digitos.length !in 9..11 -> "Debe tener entre 9 y 11 dígitos"
+                !digitos.all { it.isDigit() } -> "Solo puede contener numeros"
+                digitos.length !in 9..11 -> "Debe tener entre 9 y 11 digitos"
                 else -> null
             },
             clave = when {
@@ -143,7 +144,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 e.repetirClave != e.clave -> "Las claves no coinciden"
                 else -> null
             },
-            terminos = if (!e.aceptaTerminos) "Debes aceptar los términos" else null
+            terminos = if (!e.aceptaTerminos) "Debes aceptar los terminos" else null
         )
         val hayErrores = listOfNotNull(
             errores.nombre, errores.correo, errores.telefono,

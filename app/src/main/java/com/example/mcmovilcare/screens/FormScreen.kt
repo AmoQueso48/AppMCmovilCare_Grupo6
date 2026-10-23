@@ -1,5 +1,7 @@
 package com.example.mcmovilcare.screens
 
+
+//Zona de practica inicial
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*

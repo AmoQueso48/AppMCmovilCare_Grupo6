@@ -3,6 +3,7 @@ package com.example.mcmovilcare.model
 data class LoginUiState(
     val correo: String = "",
     val clave: String = "",
+    val cargando: Boolean = false,
     val errorGeneral: String? = null,
     val errores: LoginErrores = LoginErrores()
 )

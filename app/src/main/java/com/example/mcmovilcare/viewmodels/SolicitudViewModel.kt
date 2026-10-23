@@ -1,7 +1,9 @@
 package com.example.mcmovilcare.viewmodels
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mcmovilcare.data.PreferenciasDataStore
 import com.example.mcmovilcare.model.SolicitudDeAtencion
 import com.example.mcmovilcare.model.SolicitudErrores
 import com.example.mcmovilcare.model.SolicitudUiState
@@ -13,20 +15,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// PASO 3 · viewmodels/  — formulario "Nueva solicitud de atención".
-class SolicitudViewModel : ViewModel() {
+class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo = SolicitudRepository()
+    private val repo = SolicitudRepository(PreferenciasDataStore(application))
 
     private val _estado = MutableStateFlow(SolicitudUiState())
     val estado: StateFlow<SolicitudUiState> = _estado
 
-    private val _exito = MutableStateFlow(false)      // alimenta el AnimatedVisibility de éxito
+    private val _exito = MutableStateFlow(false)
     val exito: StateFlow<Boolean> = _exito
+
+    private val _enviando = MutableStateFlow(false)
+    val enviando: StateFlow<Boolean> = _enviando
 
     fun solicitudesDe(correo: String): Flow<List<SolicitudDeAtencion>> = repo.solicitudesDe(correo)
 
-    fun cancelar(id: Int) { repo.cancelar(id) }
+    fun cancelar(id: Int) {
+        viewModelScope.launch { repo.cancelar(id) }
+    }
 
     fun onEquipoChange(id: Int) {
         _estado.update { it.copy(equipoId = id, errores = it.errores.copy(equipo = null)) }
@@ -60,21 +66,24 @@ class SolicitudViewModel : ViewModel() {
     }
 
     fun enviar(correoCliente: String, onExito: () -> Unit) {
-        if (_exito.value) return
+        if (_exito.value || _enviando.value) return
         if (!validarFormulario()) return
         val e = _estado.value
-        repo.crear(
-            SolicitudDeAtencion(
-                id = 0,
-                clienteCorreo = correoCliente,
-                equipoId = e.equipoId,
-                tipoServicio = e.tipoServicio,
-                prioridad = e.prioridad,
-                descripcion = e.descripcion.trim()
-            )
-        )
-        _estado.value = SolicitudUiState()
         viewModelScope.launch {
+            _enviando.value = true
+            delay(600)
+            repo.crear(
+                SolicitudDeAtencion(
+                    id = 0,
+                    clienteCorreo = correoCliente,
+                    equipoId = e.equipoId,
+                    tipoServicio = e.tipoServicio,
+                    prioridad = e.prioridad,
+                    descripcion = e.descripcion.trim()
+                )
+            )
+            _estado.value = SolicitudUiState()
+            _enviando.value = false
             _exito.value = true
             delay(1200)
             _exito.value = false

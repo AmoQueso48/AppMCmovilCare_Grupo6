@@ -12,12 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.mcmovilcare.navigation.Screen
+import com.example.mcmovilcare.screens.components.BotonConLoader
 import com.example.mcmovilcare.screens.components.CampoFormulario
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
 
 @Composable
-fun LoginScreen(viewModel: MainViewModel, usuarioViewModel: UsuarioViewModel) {
+fun LoginScreen(mainViewModel: MainViewModel, usuarioViewModel: UsuarioViewModel) {
     val estado by usuarioViewModel.login.collectAsState()
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val cargando by usuarioViewModel.cargando.collectAsState()
@@ -63,14 +64,17 @@ fun LoginScreen(viewModel: MainViewModel, usuarioViewModel: UsuarioViewModel) {
             Text(estado.errorGeneral ?: "", color = MaterialTheme.colorScheme.error)
         }
 
-        Button(
+        BotonConLoader(
             modifier = Modifier.fillMaxWidth(),
+            texto = "Ingresar",
+            textoCargando = "Validando…",
+            cargando = estado.cargando,
             onClick = {
                 usuarioViewModel.iniciarSesion {
                     mainViewModel.navigateTo(Screen.Home, popUpTo = Screen.Welcome, inclusive = true)
                 }
             }
-        ) { Text("Ingresar") }
+        )
         TextButton(onClick = { mainViewModel.navigateTo(Screen.Registro) }) { Text("Crear cuenta") }
     }
 }

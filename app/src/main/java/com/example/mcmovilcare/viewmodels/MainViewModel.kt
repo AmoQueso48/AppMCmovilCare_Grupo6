@@ -14,9 +14,22 @@ class MainViewModel : ViewModel() {
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
     val navigationEvents: SharedFlow<NavigationEvent> = _navigationEvents.asSharedFlow()
-    fun navigateTo(screen: Screen) {
+
+    fun navigateTo(
+        screen: Screen,
+        popUpTo: Screen? = null,
+        inclusive: Boolean = false,
+        singleTop: Boolean = false
+    ) {
         CoroutineScope(Dispatchers.Main).launch {
-            _navigationEvents.emit(NavigationEvent.NavigateTo(route = screen))
+            _navigationEvents.emit(
+                NavigationEvent.NavigateTo(
+                    route = screen,
+                    popupToRoute = popUpTo,
+                    inclusive = inclusive,
+                    singleTop = singleTop
+                )
+            )
         }
     }
 

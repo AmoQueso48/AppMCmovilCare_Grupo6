@@ -1,6 +1,5 @@
 package com.example.mcmovilcare.screens
 
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mcmovilcare.screens.components.BotonConLoader
 import com.example.mcmovilcare.screens.components.CampoFormulario
 import com.example.mcmovilcare.screens.components.SelectorChips
 import com.example.mcmovilcare.viewmodels.EquiposViewModel
@@ -28,6 +28,7 @@ fun NuevaSolicitudScreen(
 ) {
     val estado by solicitudViewModel.estado.collectAsState()
     val exito by solicitudViewModel.exito.collectAsState()
+    val enviando by solicitudViewModel.enviando.collectAsState()
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val equipos by equiposViewModel.equipos.collectAsState()
 
@@ -83,13 +84,16 @@ fun NuevaSolicitudScreen(
             )
             Text("${estado.descripcion.length}/300", style = MaterialTheme.typography.bodySmall)
 
-            Button(
+            BotonConLoader(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !exito,
+                texto = "Enviar solicitud",
+                textoCargando = "Enviando…",
+                cargando = enviando,
+                habilitado = !exito,
                 onClick = {
                     solicitudViewModel.enviar(usuario?.correo ?: "") { mainViewModel.navigateBack() }
                 }
-            ) { Text("Enviar solicitud") }
+            )
 
             AnimatedVisibility(visible = exito) {
                 Text("Solicitud enviada!", color = MaterialTheme.colorScheme.primary)
