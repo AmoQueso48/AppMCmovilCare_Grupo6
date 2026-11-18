@@ -18,6 +18,7 @@ import com.example.mcmovilcare.model.EstadoOrden
 import com.example.mcmovilcare.screens.components.CampoFormulario
 import com.example.mcmovilcare.viewmodels.EquiposViewModel
 import com.example.mcmovilcare.viewmodels.MainViewModel
+import com.example.mcmovilcare.screens.components.BotonVolver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun OrdenScreen(mainViewModel: MainViewModel, equiposViewModel: EquiposViewModel
         topBar = {
             TopAppBar(
                 title = { Text("Orden de trabajo") },
-                navigationIcon = { TextButton(onClick = { mainViewModel.navigateBack() }) { Text("Volver") } }
+                navigationIcon = { BotonVolver { mainViewModel.navigateBack() } }
             )
         }
     ) { padding ->
@@ -84,7 +85,7 @@ fun OrdenScreen(mainViewModel: MainViewModel, equiposViewModel: EquiposViewModel
                 }
 
                 AnimatedVisibility(visible = exito) {
-                    Text("Respuesta enviada!", color = MaterialTheme.colorScheme.primary)
+                    Text("¡Respuesta enviada!", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

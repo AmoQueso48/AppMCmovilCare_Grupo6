@@ -17,6 +17,8 @@ import com.example.mcmovilcare.utils.crearUriFoto
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.PerfilViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
+import android.os.Build
+import com.example.mcmovilcare.utils.tienePermisoNotificaciones
 
 @Composable
 fun PerfilTab(
@@ -30,6 +32,7 @@ fun PerfilTab(
 
     var uriTemporal by remember { mutableStateOf<Uri?>(null) }
     var mensaje by remember { mutableStateOf<String?>(null) }
+    var notificacionesActivas by remember { mutableStateOf(tienePermisoNotificaciones(context)) }
 
     LaunchedEffect(usuario?.correo) {
         usuario?.correo?.let { perfilViewModel.cargarFoto(it) }
@@ -42,6 +45,11 @@ fun PerfilTab(
     val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { exito ->
         val uri = uriTemporal
         if (exito && uri != null) perfilViewModel.actualizarDesdeCamara(uri)
+    }
+
+    val permisoNotificaciones = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        notificacionesActivas = concedido
+        mensaje = if (concedido) null else "Sin permiso no podremos avisarte de tus solicitudes y cotizaciones"
     }
 
     val permisoCamara = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
@@ -71,6 +79,18 @@ fun PerfilTab(
         Button(modifier = Modifier.fillMaxWidth(), onClick = { permisoCamara.launch(Manifest.permission.CAMERA) }) {
             Text("Tomar foto")
         }
+
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !notificacionesActivas,
+            onClick = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    notificacionesActivas = true
+                }
+            }
+        ) { Text(if (notificacionesActivas) "Notificaciones activadas" else "Activar notificaciones") }
 
         mensaje?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 

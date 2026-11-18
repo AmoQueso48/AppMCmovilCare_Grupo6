@@ -35,13 +35,16 @@ import com.example.mcmovilcare.viewmodels.PerfilViewModel
 import com.example.mcmovilcare.viewmodels.SolicitudViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
 import kotlinx.coroutines.flow.collectLatest
+import com.example.mcmovilcare.ui.theme.MCmovilCareTheme
+import com.example.mcmovilcare.utils.crearCanalNotificaciones
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        crearCanalNotificaciones(this)
         setContent {
-            MaterialTheme {
+            MCmovilCareTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val mainViewModel: MainViewModel = viewModel()
                     val usuarioViewModel: UsuarioViewModel = viewModel()

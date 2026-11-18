@@ -60,7 +60,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 e.correo.isBlank() -> "Campo obligatorio"
                 !e.correo.contains("@") -> "Correo inválido"
                 else -> null
-            },
+            }, 
             clave = if (e.clave.isBlank()) "Ingresa tu clave" else null
         )
         val hayErrores = listOfNotNull(errores.correo, errores.clave).isNotEmpty()
@@ -129,14 +129,14 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
             },
             telefono = when {
                 e.telefono.isBlank() -> "Campo obligatorio"
-                !digitos.all { it.isDigit() } -> "Solo puede contener numeros"
-                digitos.length !in 9..11 -> "Debe tener entre 9 y 11 digitos"
+                !digitos.all { it.isDigit() } -> "Solo puede contener números"
+                digitos.length !in 9..11 -> "Debe tener entre 9 y 11 dígitos"
                 else -> null
             },
             clave = when {
                 e.clave.isBlank() -> "Campo obligatorio"
                 e.clave.length < 6 -> "Debe tener al menos 6 caracteres"
-                e.clave.none { it.isDigit() } -> "Debe incluir al menos un numero"
+                e.clave.none { it.isDigit() } -> "Debe incluir al menos un número"
                 else -> null
             },
             repetirClave = when {
@@ -144,7 +144,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 e.repetirClave != e.clave -> "Las claves no coinciden"
                 else -> null
             },
-            terminos = if (!e.aceptaTerminos) "Debes aceptar los terminos" else null
+            terminos = if (!e.aceptaTerminos) "Debes aceptar los términos" else null
         )
         val hayErrores = listOfNotNull(
             errores.nombre, errores.correo, errores.telefono,

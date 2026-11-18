@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.mcmovilcare.utils.mostrarNotificacion
 
 class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -82,6 +83,12 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
                     descripcion = e.descripcion.trim()
                 )
             )
+            mostrarNotificacion(
+                getApplication<Application>(),
+                "Solicitud enviada",
+                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}"
+            )
+
             _estado.value = SolicitudUiState()
             _enviando.value = false
             _exito.value = true

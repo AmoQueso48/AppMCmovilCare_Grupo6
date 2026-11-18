@@ -15,6 +15,7 @@ import com.example.mcmovilcare.navigation.Screen
 import com.example.mcmovilcare.utils.formatearFecha
 import com.example.mcmovilcare.viewmodels.EquiposViewModel
 import com.example.mcmovilcare.viewmodels.MainViewModel
+import com.example.mcmovilcare.screens.components.BotonVolver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +27,7 @@ fun DetalleEquipoScreen(mainViewModel: MainViewModel, equiposViewModel: EquiposV
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del equipo") },
-                navigationIcon = { TextButton(onClick = { mainViewModel.navigateBack() }) { Text("Volver") } }
+                navigationIcon = { BotonVolver { mainViewModel.navigateBack() } }
             )
         }
     ) { padding ->

@@ -1,22 +1,30 @@
 package com.example.mcmovilcare.viewmodels
 
-
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mcmovilcare.data.PreferenciasDataStore
 import com.example.mcmovilcare.model.AutorizacionErrores
 import com.example.mcmovilcare.model.AutorizacionUiState
 import com.example.mcmovilcare.model.Equipo
 import com.example.mcmovilcare.model.Mantencion
 import com.example.mcmovilcare.model.OrdenDeTrabajo
 import com.example.mcmovilcare.repository.EquipoRepository
+import com.example.mcmovilcare.utils.mostrarNotificacion
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EquiposViewModel : ViewModel() {
-    private val repo = EquipoRepository()
+class EquiposViewModel(application: Application) : AndroidViewModel(application) {
+    private val repo = EquipoRepository(PreferenciasDataStore(application))
+
+    init {
+        viewModelScope.launch { repo.sembrarSiVacio() }
+    }
 
     private val _equipos = MutableStateFlow<List<Equipo>>(emptyList())
     val equipos: StateFlow<List<Equipo>> = _equipos
@@ -27,6 +35,7 @@ class EquiposViewModel : ViewModel() {
     fun cargarEquipos(correo: String) {
         viewModelScope.launch {
             _cargando.value = true
+            repo.sembrarSiVacio()
             delay(1000)
             _equipos.value = repo.equiposDe(correo)
             _cargando.value = false
@@ -46,7 +55,8 @@ class EquiposViewModel : ViewModel() {
         _autorizacion.value = AutorizacionUiState()
     }
 
-    val ordenes: StateFlow<List<OrdenDeTrabajo>> = repo.ordenes
+    val ordenes: StateFlow<List<OrdenDeTrabajo>> =
+        repo.ordenes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun mantencionesDe(equipoId: Int): List<Mantencion> = repo.mantencionesDe(equipoId)
 
@@ -74,12 +84,23 @@ class EquiposViewModel : ViewModel() {
     }
 
     fun aprobarCotizacion(ordenId: Int) {
-        if (repo.responderAutorizacion(ordenId, aprobar = true, comentario = "")) mostrarExito()
+        viewModelScope.launch {
+            if (repo.responderAutorizacion(ordenId, aprobar = true, comentario = "")) {
+                mostrarExito()
+                mostrarNotificacion(getApplication<Application>(), "Cotización aprobada", "La orden #$ordenId quedó autorizada")
+            }
+        }
     }
 
     fun rechazarCotizacion(ordenId: Int) {
         if (!validarMotivo()) return
-        if (repo.responderAutorizacion(ordenId, aprobar = false, comentario = _autorizacion.value.motivo)) mostrarExito()
+        val motivo = _autorizacion.value.motivo
+        viewModelScope.launch {
+            if (repo.responderAutorizacion(ordenId, aprobar = false, comentario = motivo)) {
+                mostrarExito()
+                mostrarNotificacion(getApplication<Application>(), "Cotización rechazada", "Enviamos tu motivo para la orden #$ordenId")
+            }
+        }
     }
 
     private fun mostrarExito() {

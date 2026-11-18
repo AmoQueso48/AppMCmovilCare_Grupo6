@@ -17,6 +17,7 @@ import com.example.mcmovilcare.viewmodels.EquiposViewModel
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.SolicitudViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
+import com.example.mcmovilcare.screens.components.BotonVolver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,14 +33,14 @@ fun NuevaSolicitudScreen(
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val equipos by equiposViewModel.equipos.collectAsState()
 
-    val tiposServicio = listOf("Reparacion", "Diagnostico", "Mantencion", "Consultoria")
+    val tiposServicio = listOf("Reparación", "Diagnóstico", "Mantención", "Consultoría")
     val prioridades = listOf("Baja", "Media", "Alta")
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Solicitud de atención") },
-                navigationIcon = { TextButton(onClick = { mainViewModel.navigateBack() }) { Text("Volver") } }
+                navigationIcon = { BotonVolver { mainViewModel.navigateBack() } }
             )
         }
     ) { padding ->
@@ -96,7 +97,7 @@ fun NuevaSolicitudScreen(
             )
 
             AnimatedVisibility(visible = exito) {
-                Text("Solicitud enviada!", color = MaterialTheme.colorScheme.primary)
+                Text("¡Solicitud enviada!", color = MaterialTheme.colorScheme.primary)
             }
         }
     }

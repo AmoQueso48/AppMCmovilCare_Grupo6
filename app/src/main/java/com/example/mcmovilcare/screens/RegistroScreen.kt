@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.example.mcmovilcare.screens.components.CampoFormulario
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
+import com.example.mcmovilcare.screens.components.BotonVolver
+import androidx.compose.material.icons.filled.Warning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +31,7 @@ fun RegistroScreen(mainViewModel: MainViewModel, usuarioViewModel: UsuarioViewMo
         topBar = {
             TopAppBar(
                 title = { Text("Crear cuenta") },
-                navigationIcon = { TextButton(onClick = { mainViewModel.navigateBack() }) { Text("Volver") } }
+                navigationIcon = { BotonVolver { mainViewModel.navigateBack() } }
             )
         }
     ) { padding ->
@@ -47,7 +49,7 @@ fun RegistroScreen(mainViewModel: MainViewModel, usuarioViewModel: UsuarioViewMo
             CampoFormulario(
                 valor = estado.correo,
                 onCambio = usuarioViewModel::onRegistroCorreoChange,
-                etiqueta = "Correo electronico",
+                etiqueta = "Correo electrónico",
                 icono = Icons.Default.Email,
                 error = estado.errores.correo,
                 tipoTeclado = KeyboardType.Email
@@ -77,19 +79,30 @@ fun RegistroScreen(mainViewModel: MainViewModel, usuarioViewModel: UsuarioViewMo
                 esClave = true
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = estado.aceptaTerminos,
-                    onCheckedChange = usuarioViewModel::onRegistroTerminosChange
-                )
-                Text("Acepto los terminos y condiciones")
-            }
-            AnimatedVisibility(visible = estado.errores.terminos != null) {
-                Text(
-                    estado.errores.terminos ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = estado.aceptaTerminos,
+                        onCheckedChange = usuarioViewModel::onRegistroTerminosChange
+                    )
+                    Text("Acepto los términos y condiciones")
+                    AnimatedVisibility(visible = estado.errores.terminos != null) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = "Error en términos",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+                AnimatedVisibility(visible = estado.errores.terminos != null) {
+                    Text(
+                        estado.errores.terminos ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }
             }
 
             Button(
@@ -100,7 +113,7 @@ fun RegistroScreen(mainViewModel: MainViewModel, usuarioViewModel: UsuarioViewMo
 
             AnimatedVisibility(visible = exito) {
                 Text(
-                    "Cuenta creada con exito caballerito! Volviendo al inicio de sesion…",
+                    "¡Cuenta creada con éxito! Volviendo al inicio de sesión…",
                     color = MaterialTheme.colorScheme.primary
                 )
             }

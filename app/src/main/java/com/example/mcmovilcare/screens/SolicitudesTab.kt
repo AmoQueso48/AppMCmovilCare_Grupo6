@@ -44,7 +44,7 @@ fun SolicitudesTab(
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
             }
-            lista.isEmpty() -> Text("Todavia no has enviado solicitudes :c")
+            lista.isEmpty() -> Text("Todavía no has enviado solicitudes")
             else -> {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(lista, key = { it.id }) { s ->

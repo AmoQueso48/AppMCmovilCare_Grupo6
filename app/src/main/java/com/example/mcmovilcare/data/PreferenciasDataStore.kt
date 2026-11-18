@@ -9,6 +9,8 @@ import com.example.mcmovilcare.model.Usuario
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import com.example.mcmovilcare.model.Equipo
+import com.example.mcmovilcare.model.OrdenDeTrabajo
 
 
 val Context.dataStore by preferencesDataStore(name = "preferencias_Mcmovil")
@@ -20,7 +22,12 @@ class PreferenciasDataStore(private val context: Context) {
     private val CLAVE = stringPreferencesKey("usuario_clave")
     private val SESION = stringPreferencesKey("sesion_correo")
     private val SOLICITUDES = stringPreferencesKey("solicitudes_json")
-    private fun claveFoto(correo: String) = stringPreferencesKey("foto_" + correo.trim().lowercase())
+
+    private val EQUIPOS = stringPreferencesKey("equipos_json")
+
+    private val ORDENES = stringPreferencesKey("ordenes_json")
+    private fun claveFoto(correo: String) =
+        stringPreferencesKey("foto_" + correo.trim().lowercase())
 
     suspend fun guardarUsuario(usuario: Usuario) {
         context.dataStore.edit { p ->
@@ -52,6 +59,12 @@ class PreferenciasDataStore(private val context: Context) {
         }
     }
 
+    fun observarEquipos(): Flow<List<Equipo>> =
+        context.dataStore.data.map { jsonAEquipos(it[EQUIPOS]) }.distinctUntilChanged()
+
+    fun observarOrdenes(): Flow<List<OrdenDeTrabajo>> =
+        context.dataStore.data.map { jsonAOrdenes(it[ORDENES]) }.distinctUntilChanged()
+
     fun obtenerFoto(correo: String): Flow<String?> {
         val clave = claveFoto(correo)
         return context.dataStore.data.map { it[clave] }
@@ -62,5 +75,18 @@ class PreferenciasDataStore(private val context: Context) {
 
     suspend fun guardarSolicitudes(lista: List<SolicitudDeAtencion>) {
         context.dataStore.edit { p -> p[SOLICITUDES] = solicitudesAJson(lista) }
+    }
+
+    suspend fun guardarOrdenes(lista: List<OrdenDeTrabajo>) {
+        context.dataStore.edit { p -> p[ORDENES] = ordenesAJson(lista) }
+    }
+
+    suspend fun sembrarSiVacio(equipos: List<Equipo>, ordenes: List<OrdenDeTrabajo>) {
+        context.dataStore.edit { p ->
+            if (p[EQUIPOS] == null) {
+                p[EQUIPOS] = equiposAJson(equipos)
+                p[ORDENES] = ordenesAJson(ordenes)
+            }
+        }
     }
 }
