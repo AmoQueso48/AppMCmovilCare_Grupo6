@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.mcmovilcare.data.remote.mensajeApi
 
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -29,14 +30,14 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     init {
         viewModelScope.launch {
             delay(1000)
-            repo.sesionGuardada()?.let { _usuarioActual.value = repo.usuarioPorCorreo(it) }
+            repo.restaurarSesion()?.let { _usuarioActual.value = it }
             _cargando.value = false
         }
     }
 
     fun cerrarSesion(onListo: () -> Unit) {
         viewModelScope.launch {
-            repo.guardarSesion(null)
+            repo.cerrarSesion()
             _usuarioActual.value = null
             onListo()
         }
@@ -73,11 +74,16 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         if (!validarLogin()) return
         viewModelScope.launch {
             _login.update { it.copy(cargando = true, errorGeneral = null) }
-            delay(800)
             val e = _login.value
-            val usuario = repo.login(e.correo, e.clave)
+            val resultado = repo.login(e.correo, e.clave)
+            val usuario = resultado.getOrNull()
             if (usuario == null) {
-                _login.update { it.copy(cargando = false, errorGeneral = "Correo o clave incorrectos") }
+                _login.update {
+                    it.copy(
+                        cargando = false,
+                        errorGeneral = resultado.exceptionOrNull()?.mensajeApi()
+                    )
+                }
             } else {
                 repo.guardarSesion(usuario.correo)
                 _usuarioActual.value = usuario
@@ -159,15 +165,17 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         if (!validarRegistro()) return
         viewModelScope.launch {
             val e = _registro.value
-            val ok = repo.registrar(Usuario(e.nombre.trim(), e.correo.trim().lowercase(), e.telefono.trim(), e.clave))
-            if (ok) {
+            val usuario = Usuario(e.nombre.trim(), e.correo.trim().lowercase(), e.telefono.trim(), e.clave)
+            val resultado = repo.registrar(usuario)
+            if (resultado.isSuccess) {
                 _registroExitoso.value = true
                 delay(1500)
                 _registroExitoso.value = false
                 _registro.value = RegistroUiState()
                 onExito()
             } else {
-                _registro.update { it.copy(errores = it.errores.copy(correo = "Este correo ya está registrado")) }
+                val mensaje = resultado.exceptionOrNull()?.mensajeApi() ?: "No se pudo registrar"
+                _registro.update { it.copy(errores = it.errores.copy(correo = mensaje)) }
             }
         }
     }

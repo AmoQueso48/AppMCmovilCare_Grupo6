@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mcmovilcare.navigation.Screen
+import com.example.mcmovilcare.screens.components.MensajeError
 import com.example.mcmovilcare.viewmodels.EquiposViewModel
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
@@ -26,6 +27,7 @@ fun EquiposTab(
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val equipos by equiposViewModel.equipos.collectAsState()
     val cargando by equiposViewModel.cargando.collectAsState()
+    val error by equiposViewModel.error.collectAsState()
 
     LaunchedEffect(usuario?.correo) {
         usuario?.correo?.let { equiposViewModel.cargarEquipos(it) }
@@ -37,7 +39,8 @@ fun EquiposTab(
         }
     } else if (equipos.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Aún no tienes equipos registrados")
+            val mensaje = error
+            if (mensaje != null) MensajeError(mensaje) else Text("Aún no tienes equipos registrados")
         }
     } else {
         LazyVerticalGrid(

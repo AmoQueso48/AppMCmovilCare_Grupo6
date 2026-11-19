@@ -3,7 +3,7 @@ package com.example.mcmovilcare.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mcmovilcare.data.PreferenciasDataStore
+import com.example.mcmovilcare.data.remote.mensajeApi
 import com.example.mcmovilcare.model.AutorizacionErrores
 import com.example.mcmovilcare.model.AutorizacionUiState
 import com.example.mcmovilcare.model.Equipo
@@ -20,11 +20,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class EquiposViewModel(application: Application) : AndroidViewModel(application) {
-    private val repo = EquipoRepository(PreferenciasDataStore(application))
+    private val repo = EquipoRepository()
 
-    init {
-        viewModelScope.launch { repo.sembrarSiVacio() }
-    }
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
 
     private val _equipos = MutableStateFlow<List<Equipo>>(emptyList())
     val equipos: StateFlow<List<Equipo>> = _equipos
@@ -35,9 +34,10 @@ class EquiposViewModel(application: Application) : AndroidViewModel(application)
     fun cargarEquipos(correo: String) {
         viewModelScope.launch {
             _cargando.value = true
-            repo.sembrarSiVacio()
-            delay(1000)
-            _equipos.value = repo.equiposDe(correo)
+            _error.value = null
+            repo.cargar()
+                .onSuccess { _equipos.value = it }
+                .onFailure { _error.value = it.mensajeApi() }
             _cargando.value = false
         }
     }
@@ -48,7 +48,9 @@ class EquiposViewModel(application: Application) : AndroidViewModel(application)
     private val _ordenSeleccionadaId = MutableStateFlow<Int?>(null)
     val ordenSeleccionadaId: StateFlow<Int?> = _ordenSeleccionadaId
 
-    fun seleccionarEquipo(equipo: Equipo) { _equipoSeleccionado.value = equipo }
+    fun seleccionarEquipo(equipo: Equipo) {
+        _equipoSeleccionado.value = equipo
+    }
 
     fun seleccionarOrden(orden: OrdenDeTrabajo) {
         _ordenSeleccionadaId.value = orden.id
@@ -85,10 +87,16 @@ class EquiposViewModel(application: Application) : AndroidViewModel(application)
 
     fun aprobarCotizacion(ordenId: Int) {
         viewModelScope.launch {
-            if (repo.responderAutorizacion(ordenId, aprobar = true, comentario = "")) {
-                mostrarExito()
-                mostrarNotificacion(getApplication<Application>(), "Cotización aprobada", "La orden #$ordenId quedó autorizada")
-            }
+            repo.responderAutorizacion(ordenId, aprobar = true, comentario = "")
+                .onSuccess {
+                    mostrarExito()
+                    mostrarNotificacion(
+                        getApplication<Application>(),
+                        "Cotización aprobada",
+                        "La orden #$ordenId quedó autorizada"
+                    )
+                }
+                .onFailure { _error.value = it.mensajeApi() }
         }
     }
 
@@ -96,10 +104,16 @@ class EquiposViewModel(application: Application) : AndroidViewModel(application)
         if (!validarMotivo()) return
         val motivo = _autorizacion.value.motivo
         viewModelScope.launch {
-            if (repo.responderAutorizacion(ordenId, aprobar = false, comentario = motivo)) {
-                mostrarExito()
-                mostrarNotificacion(getApplication<Application>(), "Cotización rechazada", "Enviamos tu motivo para la orden #$ordenId")
-            }
+            repo.responderAutorizacion(ordenId, aprobar = false, comentario = motivo)
+                .onSuccess {
+                    mostrarExito()
+                    mostrarNotificacion(
+                        getApplication<Application>(),
+                        "Cotización rechazada",
+                        "Enviamos tu motivo para la orden #$ordenId"
+                    )
+                }
+                .onFailure { _error.value = it.mensajeApi() }
         }
     }
 

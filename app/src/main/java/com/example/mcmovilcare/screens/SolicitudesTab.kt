@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mcmovilcare.model.EstadoSolicitud
 import com.example.mcmovilcare.navigation.Screen
+import com.example.mcmovilcare.screens.components.MensajeError
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.SolicitudViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
@@ -23,6 +24,11 @@ fun SolicitudesTab(
 ) {
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val correo = usuario?.correo ?: ""
+    val error by solicitudViewModel.error.collectAsState()
+
+    LaunchedEffect(correo) {
+        if (correo.isNotEmpty()) solicitudViewModel.refrescar()
+    }
 
     val solicitudes by remember(correo) { solicitudViewModel.solicitudesDe(correo) }
         .collectAsState(initial = null)
@@ -35,6 +41,8 @@ fun SolicitudesTab(
             modifier = Modifier.fillMaxWidth(),
             onClick = { mainViewModel.navigateTo(Screen.NuevaSolicitud) }
         ) { Text("Nueva solicitud de atención") }
+
+        error?.let { MensajeError(it) }
 
         val lista = solicitudes
         when {
@@ -58,6 +66,9 @@ fun SolicitudesTab(
                                 Text(s.descripcion)
                                 if (s.estado == EstadoSolicitud.ENVIADA) {
                                     TextButton(onClick = { solicitudViewModel.cancelar(s.id) }) { Text("Cancelar solicitud") }
+                                }
+                                if (s.estado == EstadoSolicitud.ENVIADA || s.estado == EstadoSolicitud.CANCELADA) {
+                                    TextButton(onClick = { solicitudViewModel.eliminar(s.id) }) { Text("Eliminar") }
                                 }
                             }
                         }

@@ -3,7 +3,7 @@ package com.example.mcmovilcare.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mcmovilcare.data.PreferenciasDataStore
+import com.example.mcmovilcare.data.remote.mensajeApi
 import com.example.mcmovilcare.model.SolicitudDeAtencion
 import com.example.mcmovilcare.model.SolicitudErrores
 import com.example.mcmovilcare.model.SolicitudUiState
@@ -18,7 +18,10 @@ import com.example.mcmovilcare.utils.mostrarNotificacion
 
 class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repo = SolicitudRepository(PreferenciasDataStore(application))
+    private val repo = SolicitudRepository()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
 
     private val _estado = MutableStateFlow(SolicitudUiState())
     val estado: StateFlow<SolicitudUiState> = _estado
@@ -32,7 +35,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     fun solicitudesDe(correo: String): Flow<List<SolicitudDeAtencion>> = repo.solicitudesDe(correo)
 
     fun cancelar(id: Int) {
-        viewModelScope.launch { repo.cancelar(id) }
+        viewModelScope.launch { repo.cancelar(id).onFailure { _error.value = it.mensajeApi() } }
     }
 
     fun onEquipoChange(id: Int) {
@@ -46,6 +49,18 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     }
     fun onDescripcionChange(valor: String) {
         _estado.update { it.copy(descripcion = valor, errores = it.errores.copy(descripcion = null)) }
+    }
+
+    fun refrescar() {
+        viewModelScope.launch {
+            repo.refrescar()
+                .onSuccess { _error.value = null }
+                .onFailure { _error.value = it.mensajeApi() }
+        }
+    }
+
+    fun eliminar(id: Int) {
+        viewModelScope.launch { repo.eliminar(id).onFailure { _error.value = it.mensajeApi() } }
     }
 
     fun validarFormulario(): Boolean {
@@ -70,31 +85,28 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         if (_exito.value || _enviando.value) return
         if (!validarFormulario()) return
         val e = _estado.value
+        _error.value = null
         viewModelScope.launch {
             _enviando.value = true
-            delay(600)
-            repo.crear(
+            val resultado = repo.crear(
                 SolicitudDeAtencion(
-                    id = 0,
-                    clienteCorreo = correoCliente,
-                    equipoId = e.equipoId,
-                    tipoServicio = e.tipoServicio,
-                    prioridad = e.prioridad,
-                    descripcion = e.descripcion.trim()
+                    id = 0, clienteCorreo = correoCliente, equipoId = e.equipoId,
+                    tipoServicio = e.tipoServicio, prioridad = e.prioridad, descripcion = e.descripcion.trim()
                 )
             )
-            mostrarNotificacion(
-                getApplication<Application>(),
-                "Solicitud enviada",
-                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}"
-            )
-
-            _estado.value = SolicitudUiState()
             _enviando.value = false
+            if (resultado.isFailure) {
+                _error.value = resultado.exceptionOrNull()?.mensajeApi()
+                return@launch
+            }
+            mostrarNotificacion(getApplication<Application>(), "Solicitud enviada",
+                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}")
+            _estado.value = SolicitudUiState()
             _exito.value = true
             delay(1200)
             _exito.value = false
             onExito()
         }
+
     }
 }

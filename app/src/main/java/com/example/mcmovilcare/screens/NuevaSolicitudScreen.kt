@@ -18,6 +18,7 @@ import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.viewmodels.SolicitudViewModel
 import com.example.mcmovilcare.viewmodels.UsuarioViewModel
 import com.example.mcmovilcare.screens.components.BotonVolver
+import com.example.mcmovilcare.screens.components.MensajeError
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,7 @@ fun NuevaSolicitudScreen(
     val estado by solicitudViewModel.estado.collectAsState()
     val exito by solicitudViewModel.exito.collectAsState()
     val enviando by solicitudViewModel.enviando.collectAsState()
+    val errorEnvio by solicitudViewModel.error.collectAsState()
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val equipos by equiposViewModel.equipos.collectAsState()
 
@@ -95,6 +97,8 @@ fun NuevaSolicitudScreen(
                     solicitudViewModel.enviar(usuario?.correo ?: "") { mainViewModel.navigateBack() }
                 }
             )
+
+            errorEnvio?.let { MensajeError(it) }
 
             AnimatedVisibility(visible = exito) {
                 Text("¡Solicitud enviada!", color = MaterialTheme.colorScheme.primary)

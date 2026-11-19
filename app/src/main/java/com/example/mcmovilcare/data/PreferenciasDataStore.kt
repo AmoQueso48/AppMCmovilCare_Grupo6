@@ -21,6 +21,9 @@ class PreferenciasDataStore(private val context: Context) {
     private val TELEFONO = stringPreferencesKey("usuario_telefono")
     private val CLAVE = stringPreferencesKey("usuario_clave")
     private val SESION = stringPreferencesKey("sesion_correo")
+
+    private val TOKEN = stringPreferencesKey("sesion_token")
+
     private val SOLICITUDES = stringPreferencesKey("solicitudes_json")
 
     private val EQUIPOS = stringPreferencesKey("equipos_json")
@@ -43,6 +46,14 @@ class PreferenciasDataStore(private val context: Context) {
             val correo = p[CORREO] ?: return@map null
             Usuario(p[NOMBRE] ?: "", correo, p[TELEFONO] ?: "", p[CLAVE] ?: "")
         }
+
+    suspend fun guardarToken(token: String?) {
+        context.dataStore.edit { p ->
+            if (token == null) p.remove(TOKEN) else p[TOKEN] = token
+        }
+    }
+
+    fun obtenerToken(): Flow<String?> = context.dataStore.data.map { it[TOKEN] }
 
     suspend fun guardarSesion(correo: String?) {
         context.dataStore.edit { p ->
