@@ -1,6 +1,5 @@
 package com.example.mcmovilcare.viewmodels
 
-
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -14,9 +13,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class PerfilViewModel(application: Application) : AndroidViewModel(application) {
+class PerfilViewModel(
+    application: Application,
+    private val prefs: PreferenciasDataStore = PreferenciasDataStore(application)
+) : AndroidViewModel(application) {
 
-    private val prefs = PreferenciasDataStore(application)
     private var correoActual: String? = null
 
     private val _imagen = MutableStateFlow<Uri?>(null)

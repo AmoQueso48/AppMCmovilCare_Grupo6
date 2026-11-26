@@ -19,8 +19,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EquiposViewModel(application: Application) : AndroidViewModel(application) {
-    private val repo = EquipoRepository()
+class EquiposViewModel(
+    application: Application,
+    private val repo: EquipoRepository = EquipoRepository()
+) : AndroidViewModel(application) {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error

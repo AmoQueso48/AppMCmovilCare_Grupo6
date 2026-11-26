@@ -30,8 +30,21 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
+
     buildFeatures {
         compose = true
+    }
+    packaging {
+        resources {
+            /*excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md"*/
+        }
     }
 }
 
@@ -59,4 +72,20 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Kotest
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+
+    // JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+
+    // MockK (Pruebas unitarias locales)
+    testImplementation("io.mockk:mockk:1.13.10")
+
+    // Corrutinas Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+
+    // MockK (Pruebas instrumentadas Android)
+    androidTestImplementation("io.mockk:mockk-android:1.14.12")
 }

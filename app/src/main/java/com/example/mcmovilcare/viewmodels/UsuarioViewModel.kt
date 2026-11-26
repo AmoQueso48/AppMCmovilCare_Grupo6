@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mcmovilcare.data.PreferenciasDataStore
+import com.example.mcmovilcare.data.remote.mensajeApi
 import com.example.mcmovilcare.model.LoginErrores
 import com.example.mcmovilcare.model.LoginUiState
 import com.example.mcmovilcare.model.RegistroErrores
@@ -15,11 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.mcmovilcare.data.remote.mensajeApi
 
-class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repo = UsuarioRepository(PreferenciasDataStore(application))
+class UsuarioViewModel(
+    application: Application,
+    private val repo: UsuarioRepository = UsuarioRepository(PreferenciasDataStore(application))
+) : AndroidViewModel(application) {
 
     private val _usuarioActual = MutableStateFlow<Usuario?>(null)
     val usuarioActual: StateFlow<Usuario?> = _usuarioActual
@@ -61,7 +62,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 e.correo.isBlank() -> "Campo obligatorio"
                 !e.correo.contains("@") -> "Correo inválido"
                 else -> null
-            }, 
+            },
             clave = if (e.clave.isBlank()) "Ingresa tu clave" else null
         )
         val hayErrores = listOfNotNull(errores.correo, errores.clave).isNotEmpty()

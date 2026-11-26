@@ -8,17 +8,18 @@ import com.example.mcmovilcare.model.SolicitudDeAtencion
 import com.example.mcmovilcare.model.SolicitudErrores
 import com.example.mcmovilcare.model.SolicitudUiState
 import com.example.mcmovilcare.repository.SolicitudRepository
+import com.example.mcmovilcare.utils.mostrarNotificacion
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.mcmovilcare.utils.mostrarNotificacion
 
-class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repo = SolicitudRepository()
+class SolicitudViewModel(
+    application: Application,
+    private val repo: SolicitudRepository = SolicitudRepository()
+) : AndroidViewModel(application) {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -41,12 +42,15 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     fun onEquipoChange(id: Int) {
         _estado.update { it.copy(equipoId = id, errores = it.errores.copy(equipo = null)) }
     }
+
     fun onTipoServicioChange(valor: String) {
         _estado.update { it.copy(tipoServicio = valor, errores = it.errores.copy(tipoServicio = null)) }
     }
+
     fun onPrioridadChange(valor: String) {
         _estado.update { it.copy(prioridad = valor, errores = it.errores.copy(prioridad = null)) }
     }
+
     fun onDescripcionChange(valor: String) {
         _estado.update { it.copy(descripcion = valor, errores = it.errores.copy(descripcion = null)) }
     }
@@ -76,7 +80,12 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
                 else -> null
             }
         )
-        val hayErrores = listOfNotNull(errores.equipo, errores.tipoServicio, errores.prioridad, errores.descripcion).isNotEmpty()
+        val hayErrores = listOfNotNull(
+            errores.equipo,
+            errores.tipoServicio,
+            errores.prioridad,
+            errores.descripcion
+        ).isNotEmpty()
         _estado.update { it.copy(errores = errores) }
         return !hayErrores
     }
@@ -90,8 +99,12 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             _enviando.value = true
             val resultado = repo.crear(
                 SolicitudDeAtencion(
-                    id = 0, clienteCorreo = correoCliente, equipoId = e.equipoId,
-                    tipoServicio = e.tipoServicio, prioridad = e.prioridad, descripcion = e.descripcion.trim()
+                    id = 0,
+                    clienteCorreo = correoCliente,
+                    equipoId = e.equipoId,
+                    tipoServicio = e.tipoServicio,
+                    prioridad = e.prioridad,
+                    descripcion = e.descripcion.trim()
                 )
             )
             _enviando.value = false
@@ -99,14 +112,16 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
                 _error.value = resultado.exceptionOrNull()?.mensajeApi()
                 return@launch
             }
-            mostrarNotificacion(getApplication<Application>(), "Solicitud enviada",
-                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}")
+            mostrarNotificacion(
+                getApplication<Application>(),
+                "Solicitud enviada",
+                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}"
+            )
             _estado.value = SolicitudUiState()
             _exito.value = true
             delay(1200)
             _exito.value = false
             onExito()
         }
-
     }
 }
