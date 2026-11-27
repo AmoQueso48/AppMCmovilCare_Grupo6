@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EquiposViewModel(
+class EquiposViewModel @JvmOverloads constructor(
     application: Application,
     private val repo: EquipoRepository = EquipoRepository()
 ) : AndroidViewModel(application) {

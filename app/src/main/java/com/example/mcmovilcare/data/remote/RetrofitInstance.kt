@@ -10,7 +10,7 @@ object SesionApi {
 }
 object RetrofitInstance {
     // Emulador: 10.0.2.2 es el PC. Celular real: IP del PC, ej. "http://192.168.1.82:3000/"
-    private const val USAR_EMULADOR = true
+    private const val USAR_EMULADOR = false
 
     private const val HOST_PC = "localhost"
 

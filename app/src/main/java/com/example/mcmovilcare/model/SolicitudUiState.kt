@@ -5,7 +5,8 @@ data class SolicitudUiState(
     val tipoServicio: String = "",
     val prioridad: String = "",
     val descripcion: String = "",
-    val errores: SolicitudErrores = SolicitudErrores()
+    val errores: SolicitudErrores = SolicitudErrores(),
+    val editandoId: Int? = null
 )
 
 data class SolicitudErrores(

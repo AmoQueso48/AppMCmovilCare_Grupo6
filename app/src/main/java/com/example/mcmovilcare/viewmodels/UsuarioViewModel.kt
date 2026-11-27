@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel(
+class UsuarioViewModel @JvmOverloads constructor(
     application: Application,
     private val repo: UsuarioRepository = UsuarioRepository(PreferenciasDataStore(application))
 ) : AndroidViewModel(application) {

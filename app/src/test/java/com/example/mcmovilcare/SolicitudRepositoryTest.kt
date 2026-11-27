@@ -37,14 +37,11 @@ class SolicitudRepositoryTest : StringSpec({
             )
         )
 
-        // 1. Simulamos el método exacto de tu ApiService: api.solicitudes()
         val mockApi = mockk<ApiService>()
         coEvery { mockApi.solicitudes() } returns fakeSolicitudes
 
-        // 2. Instanciamos tu repositorio real pasándole el mock
         val repo = SolicitudRepository(api = mockApi)
 
-        // 3. Ejecutamos refrescar() y verificamos el Flow de solicitudesDe()
         runTest {
             repo.refrescar()
             val resultadoCliente1 = repo.solicitudesDe("cliente1@correo.cl").first()

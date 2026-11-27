@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class PerfilViewModel(
+class PerfilViewModel @JvmOverloads constructor(
     application: Application,
     private val prefs: PreferenciasDataStore = PreferenciasDataStore(application)
 ) : AndroidViewModel(application) {

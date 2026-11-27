@@ -16,6 +16,7 @@ import com.example.mcmovilcare.utils.formatearFecha
 import com.example.mcmovilcare.viewmodels.EquiposViewModel
 import com.example.mcmovilcare.viewmodels.MainViewModel
 import com.example.mcmovilcare.screens.components.BotonVolver
+import com.example.mcmovilcare.screens.components.GuiasIfixit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +58,8 @@ fun DetalleEquipoScreen(mainViewModel: MainViewModel, equiposViewModel: EquiposV
                         )
                     }
                 }
+
+                item { GuiasIfixit(eq) }
 
                 item { Text("Órdenes de trabajo", style = MaterialTheme.typography.titleMedium) }
                 items(ordenes.filter { it.equipoId == eq.id }) { orden ->

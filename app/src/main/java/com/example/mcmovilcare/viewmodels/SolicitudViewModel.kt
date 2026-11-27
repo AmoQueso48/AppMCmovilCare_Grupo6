@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mcmovilcare.data.remote.mensajeApi
+import com.example.mcmovilcare.data.remote.SolicitudBody
+import com.example.mcmovilcare.model.EstadoSolicitud
 import com.example.mcmovilcare.model.SolicitudDeAtencion
 import com.example.mcmovilcare.model.SolicitudErrores
 import com.example.mcmovilcare.model.SolicitudUiState
@@ -16,7 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SolicitudViewModel(
+class SolicitudViewModel @JvmOverloads constructor(
     application: Application,
     private val repo: SolicitudRepository = SolicitudRepository()
 ) : AndroidViewModel(application) {
@@ -37,6 +39,27 @@ class SolicitudViewModel(
 
     fun cancelar(id: Int) {
         viewModelScope.launch { repo.cancelar(id).onFailure { _error.value = it.mensajeApi() } }
+    }
+
+    fun prepararNueva(): Boolean {
+        if (_enviando.value || _exito.value) return false
+        _estado.value = SolicitudUiState()
+        _error.value = null
+        return true
+    }
+
+    fun prepararEdicion(solicitud: SolicitudDeAtencion): Boolean {
+        if (_enviando.value || _exito.value) return false
+        if (solicitud.estado != EstadoSolicitud.ENVIADA) return false
+        _estado.value = SolicitudUiState(
+            equipoId = solicitud.equipoId,
+            tipoServicio = solicitud.tipoServicio,
+            prioridad = solicitud.prioridad,
+            descripcion = solicitud.descripcion,
+            editandoId = solicitud.id
+        )
+        _error.value = null
+        return true
     }
 
     fun onEquipoChange(id: Int) {
@@ -95,18 +118,24 @@ class SolicitudViewModel(
         if (!validarFormulario()) return
         val e = _estado.value
         _error.value = null
+        _enviando.value = true
         viewModelScope.launch {
-            _enviando.value = true
-            val resultado = repo.crear(
-                SolicitudDeAtencion(
-                    id = 0,
-                    clienteCorreo = correoCliente,
-                    equipoId = e.equipoId,
-                    tipoServicio = e.tipoServicio,
-                    prioridad = e.prioridad,
-                    descripcion = e.descripcion.trim()
+            val resultado = if (e.editandoId != null) {
+                repo.editar(e.editandoId, SolicitudBody(
+                    requireNotNull(e.equipoId), e.tipoServicio, e.prioridad, e.descripcion.trim()
+                ))
+            } else {
+                repo.crear(
+                    SolicitudDeAtencion(
+                        id = 0,
+                        clienteCorreo = correoCliente,
+                        equipoId = e.equipoId,
+                        tipoServicio = e.tipoServicio,
+                        prioridad = e.prioridad,
+                        descripcion = e.descripcion.trim()
+                    )
                 )
-            )
+            }
             _enviando.value = false
             if (resultado.isFailure) {
                 _error.value = resultado.exceptionOrNull()?.mensajeApi()
@@ -114,12 +143,13 @@ class SolicitudViewModel(
             }
             mostrarNotificacion(
                 getApplication<Application>(),
-                "Solicitud enviada",
-                "Registramos tu solicitud de ${e.tipoServicio.lowercase()}"
+                if (e.editandoId == null) "Solicitud enviada" else "Solicitud actualizada",
+                if (e.editandoId == null) "Registramos tu solicitud de ${e.tipoServicio.lowercase()}"
+                else "Guardamos los cambios de tu solicitud"
             )
-            _estado.value = SolicitudUiState()
             _exito.value = true
             delay(1200)
+            _estado.value = SolicitudUiState()
             _exito.value = false
             onExito()
         }

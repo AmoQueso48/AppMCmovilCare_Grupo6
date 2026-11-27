@@ -1,6 +1,7 @@
 package com.example.mcmovilcare.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,14 +36,17 @@ fun NuevaSolicitudScreen(
     val usuario by usuarioViewModel.usuarioActual.collectAsState()
     val equipos by equiposViewModel.equipos.collectAsState()
 
+    val editando = estado.editandoId != null
+    BackHandler(enabled = enviando || exito) { }
+
     val tiposServicio = listOf("Reparación", "Diagnóstico", "Mantención", "Consultoría")
     val prioridades = listOf("Baja", "Media", "Alta")
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Solicitud de atención") },
-                navigationIcon = { BotonVolver { mainViewModel.navigateBack() } }
+                title = { Text(if (editando) "Editar solicitud" else "Solicitud de atención") },
+                navigationIcon = { BotonVolver { if (!enviando && !exito) mainViewModel.navigateBack() } }
             )
         }
     ) { padding ->
@@ -89,10 +93,10 @@ fun NuevaSolicitudScreen(
 
             BotonConLoader(
                 modifier = Modifier.fillMaxWidth(),
-                texto = "Enviar solicitud",
-                textoCargando = "Enviando…",
+                texto = if (editando) "Guardar cambios" else "Enviar solicitud",
+                textoCargando = if (editando) "Guardando…" else "Enviando…",
                 cargando = enviando,
-                habilitado = !exito,
+                habilitado = !exito && !enviando,
                 onClick = {
                     solicitudViewModel.enviar(usuario?.correo ?: "") { mainViewModel.navigateBack() }
                 }
@@ -101,7 +105,7 @@ fun NuevaSolicitudScreen(
             errorEnvio?.let { MensajeError(it) }
 
             AnimatedVisibility(visible = exito) {
-                Text("¡Solicitud enviada!", color = MaterialTheme.colorScheme.primary)
+                Text(if (editando) "¡Solicitud actualizada!" else "¡Solicitud enviada!", color = MaterialTheme.colorScheme.primary)
             }
         }
     }

@@ -19,7 +19,6 @@ class UsuarioRepositoryTest : StringSpec({
         val mockPrefs = mockk<PreferenciasDataStore>(relaxed = true)
         val mockApi = mockk<ApiService>()
 
-        // Simulamos la respuesta de api.login(...) usando relaxed mock
         val fakeRespuesta = mockk<Any>(relaxed = true)
         coEvery { mockApi.login(any()) } returns mockk(relaxed = true) {
             every { token } returns "jwt-token-123"

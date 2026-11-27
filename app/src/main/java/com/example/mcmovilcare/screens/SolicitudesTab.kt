@@ -39,7 +39,9 @@ fun SolicitudesTab(
     ) {
         Button(
             modifier = Modifier.fillMaxWidth(),
-            onClick = { mainViewModel.navigateTo(Screen.NuevaSolicitud) }
+            onClick = {
+                if (solicitudViewModel.prepararNueva()) mainViewModel.navigateTo(Screen.NuevaSolicitud)
+            }
         ) { Text("Nueva solicitud de atención") }
 
         error?.let { MensajeError(it) }
@@ -65,7 +67,14 @@ fun SolicitudesTab(
                                 Text("${s.estado.etiqueta} · prioridad ${s.prioridad}")
                                 Text(s.descripcion)
                                 if (s.estado == EstadoSolicitud.ENVIADA) {
-                                    TextButton(onClick = { solicitudViewModel.cancelar(s.id) }) { Text("Cancelar solicitud") }
+                                    Row {
+                                        TextButton(onClick = {
+                                            if (solicitudViewModel.prepararEdicion(s)) {
+                                                mainViewModel.navigateTo(Screen.NuevaSolicitud)
+                                            }
+                                        }) { Text("Editar") }
+                                        TextButton(onClick = { solicitudViewModel.cancelar(s.id) }) { Text("Cancelar solicitud") }
+                                    }
                                 }
                                 if (s.estado == EstadoSolicitud.ENVIADA || s.estado == EstadoSolicitud.CANCELADA) {
                                     TextButton(onClick = { solicitudViewModel.eliminar(s.id) }) { Text("Eliminar") }
